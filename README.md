@@ -26,7 +26,7 @@ Inside the sbrp_heur directory, you will find a script run_heur.sh with sample c
 * instance_type : dins or pcg. dins denotes instances from [Dell'Amico et al., (2018)](https://doi.org/10.1016/j.trb.2018.10.015). pcg denotes the instances of our technical report. 
 * epsilon, delta : the parameters for cost computations.
 
-In run_heur.sh, the first example calls the executable with the instance Chicago_20_1.txt from [Dell'Amico et al., (2018)](https://doi.org/10.1016/j.trb.2018.10.015), using epsilon = delta = 0.2 and setting 50k ALNS iterations.
+In run_heur.sh, the first example calls the executable with the instance Chicago_20_2.txt from [Dell'Amico et al., (2018)](https://doi.org/10.1016/j.trb.2018.10.015), using epsilon = delta = 0.2 and setting 50k ALNS iterations.
 
 ```bash
 build/exec_heur instance_file=instances_dins/Chicago_20_2.txt epsilon=0.2 delta=0.2 iterations=50000 instance_type=dins
