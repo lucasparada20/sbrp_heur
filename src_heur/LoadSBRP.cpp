@@ -42,13 +42,13 @@ void LoadSBRP::Load_pcg(Prob& pr, const char* filename) {
     for (auto& row : Distances)
         for (double& d : row) fscanf(ff, "%lf", &d);
 	
-	printf("Distance matrix:\n");
-	for(int i=0;i<Stations;i++)
-	{
-		for(int j=0;j<Stations;j++)
-			printf("%.1lf ",Distances[i][j]);
-		printf("\n");
-	}
+	//printf("Distance matrix:\n");
+	//for(int i=0;i<Stations;i++)
+	//{
+	//	for(int j=0;j<Stations;j++)
+	//		printf("%.1lf ",Distances[i][j]);
+	//	printf("\n");
+	//}
 		
 
     double c_min = std::numeric_limits<double>::max();
