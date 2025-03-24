@@ -16,9 +16,11 @@ chmod u+x cmake_script_heur.sh
 ./cmake_script_heur.sh
 ```
 
+3. Retrieve the instances from the ![sbrp_exact}(https://github.com/lucasparada20/sbrp_exact) repository.
+    
 ## Running the code
 
-Inside the sbrp directory, you will find a script run_heur.sh with sample command line calls. The format is:
+Inside the sbrp_heur directory, you will find a script run_heur.sh with sample command line calls. The format is:
 
 * instance_file : the instance to solve.
 * instance_type : dins or pcg. dins denotes instances from [Dell'Amico et al., (2018)](https://doi.org/10.1016/j.trb.2018.10.015). pcg denotes the instances of our technical report. 
