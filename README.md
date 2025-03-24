@@ -16,7 +16,7 @@ chmod u+x cmake_script_heur.sh
 ./cmake_script_heur.sh
 ```
 
-3. Retrieve the instances from the ![sbrp_exact}(https://github.com/lucasparada20/sbrp_exact) repository.
+3. Retrieve the instances from the ![sbrp_exact](https://github.com/lucasparada20/sbrp_exact) repository.
     
 ## Running the code
 
