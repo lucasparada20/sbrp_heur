@@ -16,12 +16,17 @@ void SequentialInsertionSBRP::Insert(Sol & s)
 		Move best;
 		best.IsFeasible = false;
 		best.DeltaCost = INFINITE;
-
+		bool has_seen_empty_driver = false;
 		for(int j = 0 ; j < s.GetDriverCount() ; j++)
 		{
 			Move m;
+			if(s.GetRouteLength( s.GetDriver(j)) == 0 && has_seen_empty_driver) continue;
+			
 			_insrmv.InsertCost(s, n, s.GetDriver(j), m);
 			//printf("Insert cost:%.2lf driver:%d Feasible:%d\n", m.DeltaCost, s.GetDriver(j)->id, m.IsFeasible );
+			
+			if(s.GetRouteLength( s.GetDriver(j)) == 0)
+				has_seen_empty_driver = true;
 
 			if(m.IsFeasible && m.DeltaCost < best.DeltaCost)
 				best = m;
