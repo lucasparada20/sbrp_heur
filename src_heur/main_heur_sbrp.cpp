@@ -26,6 +26,7 @@
 int main(int arg, char ** argv)
 {
 	
+	srand(0);
 	if(arg == 1)
 	{
 		printf("usage: executable, instance_file, epsilon, delta, cuts_type, instance_type, algorithm optional:initial_solution_file \n");
@@ -91,13 +92,20 @@ int main(int arg, char ** argv)
 	//Optimize
 	alns.SetTemperatureIterInit(0);
 	alns.SetTemperature(0.99);
-	//alns.SetIterationCount(750000);//Remember to set a lot of iterations
 	alns.SetIterationCount( Parameters::GetIterations() );
 	
 	clock_t start_time = clock();
 	
 	
-	alns.Optimize(sol);
+	for(int i=0;i<10;i++)
+	{
+		Sol s = sol;
+		seq.Insert(s);
+		alns.Optimize(sol);
+
+		if(sol.GetCost() > s.GetCost())
+			sol = s;
+	}
 	//BestSolutionList best_sol_list(&pr,100);
 	//alns.Optimize(sol,&best_sol_list);
 	//for(int k=0;k<best_sol_list.GetSolutionCount();k++)
@@ -119,7 +127,26 @@ int main(int arg, char ** argv)
 	double heur_ub = heur_ub_distance + heur_ub_recourse;
 	int heur_nb_drivers = sol.GetUsedDriverCount();
 	printf("time:%.2lf\n", elapsed_seconds);
-	printf("UB Heur:%.3lf dist:%.3lf rec:%.3lf drv:%d\n", heur_ub, heur_ub_distance, heur_ub_recourse,heur_nb_drivers); 	
+	printf("UB Heur:%.3lf dist:%.3lf rec:%.3lf drv:%d\n", heur_ub, heur_ub_distance, heur_ub_recourse,heur_nb_drivers); 
+
+	std::string re_file_name_str = "/results/re" +  std::string(Parameters::GetInstanceFileName()) + ".txt";
+	std::ofstream re_file( re_file_name_str );
+	
+	if(!re_file.is_open())
+	{
+		printf("Could not open re file:%s\n",re_file_name_str.c_str());
+		exit(1);
+	}
+	
+	re_file 
+		<< Parameters::GetInstanceFileName() << ";" 
+		<< heur_ub << ";"
+		<< heur_ub_distance << ";"
+		<< heur_ub_recourse << ";"
+		<< heur_nb_drivers << ";"
+		<< elapsed_seconds;
+		
+	re_file.close();
 
 	return 0;
 }
