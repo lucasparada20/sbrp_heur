@@ -48,7 +48,7 @@ class RegretInsertionOperatorSBRP : public InsertOperator
 		RegretInsertionOperatorSBRP(RegretInsertionSBRP * regret_opt, int k)
 				: _regret_opt(regret_opt), _k(k){}
 	
-		void Insert(Sol & s) override
+		void Insert(Sol & s, bool show) override
 		{
 			_regret_opt->SetK(_k);
 			_regret_opt->Insert(s);

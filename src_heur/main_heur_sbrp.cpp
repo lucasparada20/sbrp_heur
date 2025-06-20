@@ -75,8 +75,6 @@ int main(int arg, char ** argv)
 	RemoveRandomSBRP random_remove;
 
 	RelatednessRemoveSBRP related_remove(pr.GetDistances());
-	
-	seq.Insert(sol); //Sequential insertion of nodes to build an initial solution and store in sol 
 
 	ALNS alns;
 	alns.AddInsertOperator(&seq);
@@ -87,7 +85,7 @@ int main(int arg, char ** argv)
 	alns.AddRemoveOperator(&random_remove);
 	alns.AddRemoveOperator(&related_remove);
 
-	seq.Insert(sol);
+	seq.Insert(sol,false); //Sequential insertion of nodes to build an initial solution and store in sol 
 	
 	//Optimize
 	alns.SetTemperatureIterInit(0);
@@ -96,11 +94,10 @@ int main(int arg, char ** argv)
 	
 	clock_t start_time = clock();
 	
-	
 	for(int i=0;i<10;i++)
 	{
 		Sol s = sol;
-		seq.Insert(s);
+		seq.Insert(s, true);
 		alns.Optimize(sol);
 
 		if(sol.GetCost() > s.GetCost())
@@ -128,8 +125,16 @@ int main(int arg, char ** argv)
 	int heur_nb_drivers = sol.GetUsedDriverCount();
 	printf("time:%.2lf\n", elapsed_seconds);
 	printf("UB Heur:%.3lf dist:%.3lf rec:%.3lf drv:%d\n", heur_ub, heur_ub_distance, heur_ub_recourse,heur_nb_drivers); 
-
-	std::string re_file_name_str = "/results/re" +  std::string(Parameters::GetInstanceFileName()) + ".txt";
+	
+	
+	// Find the position of the last '/'
+    size_t lastSlash =std::string(Parameters::GetInstanceFileName()).find_last_of('/');
+    // Find the position of the last '.'
+    size_t lastDot = std::string(Parameters::GetInstanceFileName()).find_last_of('.');
+    // Extract the substring between the last '/' and the last '.'
+    std::string instance_name_str = std::string(Parameters::GetInstanceFileName()).substr(lastSlash + 1, lastDot - lastSlash - 1);
+	
+	std::string re_file_name_str = "results/re_" +  instance_name_str + ".txt";
 	std::ofstream re_file( re_file_name_str );
 	
 	if(!re_file.is_open())
@@ -139,12 +144,12 @@ int main(int arg, char ** argv)
 	}
 	
 	re_file 
-		<< Parameters::GetInstanceFileName() << ";" 
+		<< instance_name_str << ";" 
 		<< heur_ub << ";"
 		<< heur_ub_distance << ";"
 		<< heur_ub_recourse << ";"
 		<< heur_nb_drivers << ";"
-		<< elapsed_seconds;
+		<< elapsed_seconds << "\n";
 		
 	re_file.close();
 

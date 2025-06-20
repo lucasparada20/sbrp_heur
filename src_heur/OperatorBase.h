@@ -20,7 +20,7 @@ class InsertOperator
 		virtual ~InsertOperator(){}
 		
 		//Try to insert all unassigned customers
-		virtual void Insert(Sol & s) = 0;
+		virtual void Insert(Sol & s, bool show) = 0;
 };
 
 #endif

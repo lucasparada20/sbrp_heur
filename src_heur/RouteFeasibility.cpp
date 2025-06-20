@@ -119,3 +119,32 @@ double RouteFeasibility::RecourseCost(Prob* prob, std::vector<Node*>& path, int 
 		cost = std::min(cost , memo[1][q]);
 	return cost;
 }
+
+bool RouteFeasibility::HasZeroHC(Prob* prob, std::vector<Node*>& path)
+{
+	int Q = prob->GetDriver(0)->capacity;
+	bool hasZeroRec = true;
+	for(int i=0;i<path.size();i++)
+	{
+		int L = 0; int q = 0;
+		for(int e = 0; e < prob->GetScenarioCount(); e++)
+		{
+			Node* n = path[i];
+			if(n->type != NODE_TYPE_CUSTOMER) continue;
+			q += n->demands[e];
+			if( q < 0 )
+			{
+				L += std::abs(q);
+				q = 0;
+			}
+			if( q > Q || L > Q)
+			{
+				hasZeroRec = false; break;
+			}
+		}
+		if(!hasZeroRec) break;
+	}
+	return hasZeroRec;
+}
+
+

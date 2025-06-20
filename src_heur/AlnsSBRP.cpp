@@ -29,6 +29,7 @@ void ALNS::Optimize(Sol & s, BestSolutionList * best_sol_list)
 	double T = Tmin;
 	printf("ALNS it:%d Tmin:%.10lf TMax:%.10lf ",_iterator_count, Tmin,Tmax);
 	printf("init_dist:%lf pow:%.10lf T:%.10lf\n",init_dist,pow(_temperature, 30000),_temperature);
+	clock_t begin = clock();
 	for(int iter = 0 ; iter < _iterator_count ;iter++)
 	{
 		int nbitems = s.GetCustomerCount() - s.GetUnassignedCount();
@@ -45,13 +46,17 @@ void ALNS::Optimize(Sol & s, BestSolutionList * best_sol_list)
 		ins->nb_selected++; rmv->nb_selected++;
 
 		rmv->opt->Remove(cur, nbremove);
-		ins->opt->Insert(cur);
+		ins->opt->Insert(cur,false);
 
 		double newcost = cur.GetCost();
 
 		if((iter % 1000) == 0)// || best_cost > newcost)
-		printf("Iter:%d rmv:%d newcost:%.2lf(%d,%d) cost:%.2lf best:%.2lf T:%.8lf\n",
-				iter,nbremove,newcost,cur.GetUnassignedCount(),(int)cur.IsFeasible(),curr_cost, best_cost,T);
+		{
+			double time = (double)(clock() -  begin) / CLOCKS_PER_SEC;
+			printf("Iter:%d rmv:%d newcost:%.2lf(%d,%d) cost:%.2lf best:%.2lf T:%.8lf time:%.1lf\n",
+				iter,nbremove,newcost,cur.GetUnassignedCount(),(int)cur.IsFeasible(),curr_cost, best_cost, T, time);
+		}
+		
 
 		if(best_sol_list != NULL && cur.IsFeasible())
 			best_sol_list->Add(cur);

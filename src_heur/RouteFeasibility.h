@@ -16,6 +16,7 @@ public:
   static bool IsFeasible(Prob* prob, std::vector<Node*>& path, int e); //e is the scenario
 
 	static double RecourseCost(Prob* prob, std::vector<Node*>& path);
+	static bool HasZeroHC(Prob* prob, std::vector<Node*>& path);
 	static double RecourseCost(Prob* prob, std::vector<Node*>& path, int scenario);
 	static std::vector<double> MissingBicycles(Prob* prob, std::vector<Node*>& path);
 
