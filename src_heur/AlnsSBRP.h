@@ -42,7 +42,7 @@ class ALNS
 			_iterator_count = 25000;
 			_temperature = 0.9996;
 			_pourcentage_max = 0.4;_pourcentage_min = 0.1;
-			_max_nb_items = 60; 	_min_nb_items = 30;
+			_max_nb_items = 8; 	_min_nb_items = 4;
 			_sigma1 = 4; _sigma2 = 1; _sigma3 = 0;
 			_p = 0.05;
 			_temperature_iter_init = 0;
