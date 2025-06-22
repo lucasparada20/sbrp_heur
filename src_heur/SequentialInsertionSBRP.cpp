@@ -102,7 +102,7 @@ void SequentialInsertionSBRP::Insert(Sol & s, bool show)
 		best.DeltaCost = INFINITE;
 		
 		//Find the best delta Recourse of the moves
-		for(int j=0;j<std::min(50,(int)moveVec.size());j++)
+		for(int j=0;j<std::min(20,(int)moveVec.size());j++)
 		{
 			Move mo = moveVec[j];
 			Driver * d = mo.to;
