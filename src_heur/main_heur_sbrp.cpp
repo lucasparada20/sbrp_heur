@@ -89,7 +89,8 @@ int main(int arg, char ** argv)
 	
 	//Optimize
 	alns.SetTemperatureIterInit(0);
-	alns.SetTemperature(0.99);
+	alns.SetTemperature(0.9995);
+	alns.SetAcceptationGap(1.1);
 	alns.SetIterationCount( Parameters::GetIterations() );
 	
 	clock_t start_time = clock();
