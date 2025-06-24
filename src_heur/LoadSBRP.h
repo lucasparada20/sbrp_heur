@@ -8,8 +8,8 @@
 class LoadSBRP
 {
 	public:
-		void Load_dins(Prob & pr, const char * filename);
-		void Load_pcg(Prob & pr, const char * filename);
+		void Load_dins(Prob & pr, const char * filename, int driver_count);
+		void Load_pcg(Prob & pr, const char * filename, int driver_count);
 };
 
 #endif

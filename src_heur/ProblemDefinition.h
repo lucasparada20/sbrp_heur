@@ -33,6 +33,30 @@ class Prob
 				_distances = NULL;
 			}
 		}
+		
+		void Clear()
+		{
+			// Clear vectors
+			_nodes.clear();
+			_customers.clear();
+			_drivers.clear();
+			_scenarios.clear();
+			_sortedscenarios.clear();
+
+			// Delete distance matrix if owned
+			if (_delete_matrices && _distances != NULL)
+			{
+				for (int i = 0; i < _dimension; i++)
+					delete[] _distances[i];
+				delete[] _distances;
+			}
+			// Reset other members
+			_distances = NULL;
+			_dimension = 0;
+			_driver_count_lb = 1;
+			_upper_bound = 9999999999.9;
+		}
+
 
 		void AddCustomer(Node * n){ _customers.push_back(n->id); }
 		void AddNode(Node & n){ _nodes.push_back(n); }

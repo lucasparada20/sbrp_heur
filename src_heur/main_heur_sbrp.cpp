@@ -29,81 +29,173 @@ int main(int arg, char ** argv)
 	srand(0);
 	if(arg == 1)
 	{
-		printf("usage: executable, instance_file, epsilon, delta, cuts_type, instance_type, algorithm optional:initial_solution_file \n");
+		printf("usage: executable, instance_file, epsilon, delta, instance_type\n");
 		printf("Instance_type: dins or pcg\n");
-		printf("Cuts: P&L=1 Benders=2 Hybrid=3\n");
-		printf("Algorithm: DL-shaped=dl Multicut=m(Only accepts Benders Opt Cuts=6)\n");
 		printf("exiting.\n");
 		exit(1);
 	}
 
 	Parameters param;
-	param.Read(arg,argv);
+	param.Read(arg,argv);	
 	
-	if(Parameters::GetIterations() < 1)
-	{
-		printf("Need more than 1 iterarion. Exiting ...\n"); exit(1);
-	}
-	
-
+	Prob pr_temp;
 	Prob pr;
+	Prob pr_while;
 	LoadSBRP Load;
 
 	if(std::strcmp(Parameters::GetInstanceType(),"dins")==0) 
-		Load.Load_dins(pr, Parameters::GetInstanceFileName());
+		Load.Load_dins(pr_temp, Parameters::GetInstanceFileName(),1);
 	else if(std::strcmp(Parameters::GetInstanceType(),"pcg")==0) 
-		Load.Load_pcg(pr, Parameters::GetInstanceFileName());
+		Load.Load_pcg(pr_temp, Parameters::GetInstanceFileName(),1);
 	else {
 		printf("Wrong file type. Exiting ... \n"); exit(1);
 	}
 
-	RecourseLowerBound::SetWorstScenario(&pr);
-	RecourseLowerBound::SortFromWorstScenarios(&pr);
+	RecourseLowerBound::SetWorstScenario(&pr_temp);
+	RecourseLowerBound::SortFromWorstScenarios(&pr_temp);
  
 	//Instantiation of ALNS operators
 	CostFunctionSBRP cost_func;
 	
-	Sol sol(&pr,&cost_func);
+	Sol sol(&pr_temp,&cost_func);
 	sol.PutAllNodesToUnassigned();
+	
+	InsRmvMethodSBRP method1(pr_temp);
+	SequentialInsertionSBRP seq1(method1);
+	RegretInsertionSBRP regret(pr_temp,method1);
+	RegretInsertionOperatorSBRP regret2(&regret,3);
+	RegretInsertionOperatorSBRP regretk(&regret,pr_temp.GetDriverCount());
+	RemoveRandomSBRP random_remove1;
+	RelatednessRemoveSBRP related_remove1(pr_temp.GetDistances());
+	
+	// An Alns run to find a feasible solution with some drivers
+	ALNS alns1;
+	//=============================//
+	alns1.AddInsertOperator(&seq1);
+	//=============================//
+	//alns1.AddInsertOperator(&regret2);
+	//alns1.AddInsertOperator(&regretk);
+	//====================================//
+	alns1.AddRemoveOperator(&random_remove1);
+	alns1.AddRemoveOperator(&related_remove1);
+
+	seq1.Insert(sol,false); //Sequential insertion of nodes to build an initial solution and store in sol 
+	
+	//Optimize
+	alns1.SetTemperatureIterInit(0);
+	alns1.SetTemperature(0.9995);
+	alns1.SetAcceptationGap(1.1);
+	alns1.SetIterationCount( 1000 );
+	alns1.Optimize(sol);
+	sol.Update();
+	sol.Show();
+	
+	int drv = 1;
+	while(!sol.IsFeasible())
+	{
+		drv++;
+		pr_while.Clear();
+		if(std::strcmp(Parameters::GetInstanceType(),"dins")==0) 
+			Load.Load_dins(pr_while, Parameters::GetInstanceFileName(),drv);
+		else if(std::strcmp(Parameters::GetInstanceType(),"pcg")==0) 
+			Load.Load_pcg(pr_while, Parameters::GetInstanceFileName(),drv);
+		
+		RecourseLowerBound::SetWorstScenario(&pr_while);
+		RecourseLowerBound::SortFromWorstScenarios(&pr_while);
+		
+		printf("No feasible solution. Restarting Alns with nb drvs:%d\n",pr_while.GetDriverCount());
+
+		InsRmvMethodSBRP method2(pr_while);
+		SequentialInsertionSBRP seq2(method2);
+		RegretInsertionSBRP regret(pr_while,method2);
+		RemoveRandomSBRP random_remove2;
+		RelatednessRemoveSBRP related_remove2(pr_while.GetDistances());
+		
+		// An Alns run to find a feasible solution with some drivers
+		ALNS alns2;
+		//=============================//
+		alns2.AddInsertOperator(&seq2);
+		//=============================//
+		alns2.AddRemoveOperator(&random_remove2);
+		alns2.AddRemoveOperator(&related_remove2);
+		//=============================//
+		
+		Sol s(&pr_while,&cost_func);
+		s.PutAllNodesToUnassigned();
+		seq2.Insert(s,false); //Sequential insertion of nodes to build an initial solution and store in sol 
+		
+		//Optimize
+		alns2.SetTemperatureIterInit(0);
+		alns2.SetTemperature(0.9995);
+		alns2.SetAcceptationGap(1.1);
+		alns2.SetIterationCount( 1000 );
+		alns2.Optimize(s);
+		s.Update();
+		s.Show();
+		if(s.IsFeasible())
+			sol = s; //They have different prob objects ...
+	}
+	
+	
+	printf("Feasible solution found with nb drvs:%d Testing with more drivers ... \n",sol.GetUsedDriverCount());
+	if(std::strcmp(Parameters::GetInstanceType(),"dins")==0) 
+		Load.Load_dins(pr, Parameters::GetInstanceFileName(),sol.GetUsedDriverCount()+2);
+	else if(std::strcmp(Parameters::GetInstanceType(),"pcg")==0) 
+		Load.Load_pcg(pr, Parameters::GetInstanceFileName(),sol.GetUsedDriverCount()+2);
+	
+	RecourseLowerBound::SetWorstScenario(&pr);
+	RecourseLowerBound::SortFromWorstScenarios(&pr);	
 	
 	InsRmvMethodSBRP method(pr);
 	SequentialInsertionSBRP seq(method);
-	RegretInsertionSBRP regret(pr,method);
-	RegretInsertionOperatorSBRP regret2(&regret,3);
-	RegretInsertionOperatorSBRP regretk(&regret,pr.GetDriverCount());
-
 	RemoveRandomSBRP random_remove;
-
 	RelatednessRemoveSBRP related_remove(pr.GetDistances());
 
 	ALNS alns;
 	alns.AddInsertOperator(&seq);
-	//----------------------------------
-	alns.AddInsertOperator(&regret2);
-	alns.AddInsertOperator(&regretk);
-	//---------------------------------
+	//=============================//
 	alns.AddRemoveOperator(&random_remove);
 	alns.AddRemoveOperator(&related_remove);
-
-	seq.Insert(sol,false); //Sequential insertion of nodes to build an initial solution and store in sol 
+	//=====================================//	
 	
-	//Optimize
-	alns.SetTemperatureIterInit(0);
-	alns.SetTemperature(0.9995);
-	alns.SetAcceptationGap(1.1);
+	// Alns run with more drivers
+	alns.SetIterationCount( 1000 );
+	
+	Sol new_sol(&pr,&cost_func);
+	new_sol.PutAllNodesToUnassigned();
+	seq.Insert(new_sol, false);
+	alns.Optimize(new_sol);
+	new_sol.Update();
+	printf("Cost with more drivers:%.1lf drv:%d\n",new_sol.GetCost(), new_sol.GetUsedDriverCount());
+	
+	if(new_sol.GetCost() < sol.GetCost())
+	{
+		printf("Starting main Alns with solution with more drivers!\n");
+		sol = new_sol;
+	} else
+		printf("Will do main Alns run with nb drv:%d!\n",sol.GetUsedDriverCount());
+		
+	
+	// The main Alns run
 	alns.SetIterationCount( Parameters::GetIterations() );
-	
 	clock_t start_time = clock();
-	
 	for(int i=0;i<10;i++)
 	{
+		printf("Alns run:%d\n",i+1);
 		Sol s = sol;
-		seq.Insert(s, true);
+		seq.Insert(s, false);
 		alns.Optimize(sol);
 
 		if(sol.GetCost() > s.GetCost())
 			sol = s;
 	}
+	clock_t end_time = clock();
+	
+	printf("Solution refining by calculating with all scenarios ...\n");
+	alns.SetIterationCount(5000);
+	method.calculate_with_all_scenarios = true;
+	alns.Optimize(sol);
+	
 	//BestSolutionList best_sol_list(&pr,100);
 	//alns.Optimize(sol,&best_sol_list);
 	//for(int k=0;k<best_sol_list.GetSolutionCount();k++)
@@ -113,7 +205,7 @@ int main(int arg, char ** argv)
 		//s1.Show();
 	//}	
 	
-	clock_t end_time = clock();
+	
 	
 	double elapsed_seconds = (double) (end_time - start_time) / CLOCKS_PER_SEC;
 	

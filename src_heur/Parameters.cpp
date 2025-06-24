@@ -14,7 +14,7 @@ double Parameters::Epsilon = 0;
 double Parameters::Cmin = 0;
 int Parameters::WorstScenario = -1;
 int Parameters::OppositeScenario = -1;
-int Parameters::Iterations = -1;
+int Parameters::Iterations = 100;
 
 char instance_file_temp[100];
 char instance_type_temp[100];

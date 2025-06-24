@@ -54,8 +54,11 @@ void InsRmvMethodSBRP::InsertCost(Sol & s, Node * n, Driver * d, Move & mo)
 
 		if(newcost < mo.DeltaCost && RouteFeasibility::IsFeasible(s.GetProb(), path))
 		{
-			//double rec = RouteFeasibility::RecourseCost(s.GetProb(), path, Parameters::GetWorstScenario()) * Parameters::GetCminEpsilon();
-			double rec = RouteFeasibility::RecourseCost(s.GetProb(), path);
+			double rec = 9999.0;
+			if(calculate_with_all_scenarios)
+				rec = RouteFeasibility::RecourseCost(s.GetProb(), path);
+			else 
+				rec = RouteFeasibility::RecourseCost(s.GetProb(), path, Parameters::GetWorstScenario()) * Parameters::GetCminEpsilon();
 			if(newcost + rec < mo.DeltaCost)
 			{
 				mo.DeltaDistance = deltaDist;

@@ -18,7 +18,8 @@ class InsRmvMethodSBRP
 		void RemoveCost(Sol & s, Node * n, Move & m);
 		void CheckMove(Sol & s, Move & m){};
 		void FillInsertionList(Sol & s, std::vector<Node*> & list);
-
+		
+		bool calculate_with_all_scenarios = false;
 	private:
 		std::vector<Node*> path;
 		Prob * _prob;

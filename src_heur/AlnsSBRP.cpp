@@ -53,8 +53,8 @@ void ALNS::Optimize(Sol & s, BestSolutionList * best_sol_list)
 		if((iter % 1000) == 0)// || best_cost > newcost)
 		{
 			double time = (double)(clock() -  begin) / CLOCKS_PER_SEC;
-			printf("Iter:%d rmv:%d newcost:%.2lf(%d,%d) cost:%.2lf best:%.2lf T:%.8lf time:%.1lf\n",
-				iter,nbremove,newcost,cur.GetUnassignedCount(),(int)cur.IsFeasible(),curr_cost, best_cost, T, time);
+			printf("Iter:%d rmv:%d newcost:%.2lf(%d,%d) cost:%.2lf best:%.2lf Drv:%d T:%.8lf time:%.1lf\n",
+				iter,nbremove,newcost,cur.GetUnassignedCount(),(int)cur.IsFeasible(), curr_cost, best_cost, best.GetUsedDriverCount(), T, time);
 		}
 		
 

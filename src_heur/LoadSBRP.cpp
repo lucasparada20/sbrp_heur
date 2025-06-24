@@ -13,7 +13,8 @@
 #include <algorithm>
 #include <cfloat>    
 
-void LoadSBRP::Load_pcg(Prob& pr, const char* filename) {
+void LoadSBRP::Load_pcg(Prob& pr, const char* filename, int driver_count) 
+{
     FILE* ff = fopen(filename, "r");
     if (!ff) {
         fprintf(stderr, "Error in the input filename: %s\n", filename);
@@ -63,7 +64,8 @@ void LoadSBRP::Load_pcg(Prob& pr, const char* filename) {
         }
     }
 
-    if (c_min < 1.0) {
+    if (c_min < 1.0) 
+	{
         fprintf(stderr, "c_min: %.1lf At least two stations are stacked on top. From:%d to:%d Stopping...\n", c_min,from,to);
         exit(1);
     }
@@ -100,8 +102,10 @@ void LoadSBRP::Load_pcg(Prob& pr, const char* filename) {
     for (int i = 0; i < Scenarios; i++) {
         pr.AddScenario(i);
     }
-
-    for (int i = 0; i < Stations; i++) {
+	
+	int drv = driver_count <= 0 ? Stations : driver_count;	
+	printf("Loading with nb drvs:%d\n",drv);
+    for (int i = 0; i < drv; i++) {
 		Node dep1;
 		dep1.id = Stations - 1 + i*2;
 		dep1.no = 0;
@@ -146,7 +150,7 @@ void LoadSBRP::Load_pcg(Prob& pr, const char* filename) {
     fclose(ff);
 }
 
-void LoadSBRP::Load_dins(Prob& pr, const char* filename) {
+void LoadSBRP::Load_dins(Prob& pr, const char* filename, int driver_count) {
     pr = Prob();
 
     std::ifstream ff(filename);
@@ -209,8 +213,10 @@ void LoadSBRP::Load_dins(Prob& pr, const char* filename) {
     for (int i = 0; i < Scenarios; i++) {
         pr.AddScenario(i);
     }
-
-    for (int i = 0; i < FleetSize; i++) {
+	
+	int drv = driver_count <= 0 ? FleetSize : driver_count;
+	printf("Loading with nb drvs:%d\n",drv);	
+    for (int i = 0; i < drv; i++) {
 		Node dep1;
 		dep1.id = Stations - 1 + i*2;
 		dep1.no = 0;
