@@ -47,7 +47,7 @@ void SequentialInsertionSBRP::FillMoveVec(Sol & s, Node * n, Driver * d, std::ve
 	}	
 }
 
-void SequentialInsertionSBRP::Insert(Sol & s, bool show)
+void SequentialInsertionSBRP::InsertOld(Sol & s, bool show)
 {
 	s.Update();
 	std::vector<Node*> nodes; //list of customers to insert
@@ -181,7 +181,7 @@ void SequentialInsertionSBRP::Insert(Sol & s, bool show)
 }
 
 
-void SequentialInsertionSBRP::InsertOld(Sol & s)
+void SequentialInsertionSBRP::Insert(Sol & s, bool show)
 {
 	s.Update();
 	std::vector<Node*> nodes; //list of customers to insert
@@ -204,7 +204,8 @@ void SequentialInsertionSBRP::InsertOld(Sol & s)
 			if(s.GetRouteLength( s.GetDriver(j)) == 0 && has_seen_empty_driver) continue;
 			
 			_insrmv.InsertCost(s, n, s.GetDriver(j), m);
-			//printf("Insert cost:%.2lf driver:%d Feasible:%d\n", m.DeltaCost, s.GetDriver(j)->id, m.IsFeasible );
+			if(show)
+				printf("Insert cost:%.2lf driver:%d Feasible:%d\n", m.DeltaCost, s.GetDriver(j)->id, m.IsFeasible );
 			
 			if(s.GetRouteLength( s.GetDriver(j)) == 0)
 				has_seen_empty_driver = true;

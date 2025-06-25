@@ -227,7 +227,88 @@ class Sol
 
 		Node * GetNext(Node * n){return Next[n->id];}
 		Node * GetPrev(Node * n){return Prev[n->id];}
-    
+		
+		void SetProb(Prob * pr){ _prob = pr; }
+		
+		void MakeFeasible()
+		{
+			//printf("MakeFeasible() Drivers:%d\n",GetDriverCount());
+			int cntr=0;
+			for(int i=0;i<GetDriverCount();i++)
+			{
+				//RemoveInfeasibleCustomers(GetDriver(i));
+				_cost_func->Update(*this,GetDriver(i));
+				if(RoutesLength[i] < 1 ) continue;
+				//printf("Drv in MakeFeasible():\n");
+				//GetDriver(i)->Show(); //getchar();
+				//if(!GetDriver(i)->is_feasible && Parameters::RecoursePolicy()==1)
+				//{
+					RemoveInfeasibleCustomers_HC(GetDriver(i)); cntr++;
+				//}else if( Parameters::RecoursePolicy()==2 )
+					//RemoveInfeasibleCustomers_HR(GetDriver(i));
+			}
+			//printf("Infeasible Drivers:%d\n",cntr);
+		}
+
+		void RemoveInfeasibleCustomers_HC(Driver * d)
+		{	
+			int cntr=0; std::vector<int> RmvCust;
+			for(int e=0;e<_prob->GetScenarioCount();e++)
+			{
+				int Q = d->capacity;
+				int sumLambda = 0; int minLambda = 0; int prevMinLambda = 0; // Store previous minLambda
+				int sumMu = 0; int maxMu = 0; int prevMaxMu = 0; // Store previous maxMu
+				
+				Node * prev = GetNode(d->StartNodeID);
+				//printf("RmvInfCust d_id:%d Nodes:%d-",d->id,prev->no);
+				while (prev->type != NODE_TYPE_END_DEPOT)
+				{
+					Node * next = Next[prev->id];
+					//printf("%d-",next->no);
+					int lambda_i = std::max(-Q, next->demands[e] - next->w_plus);
+					int mu_i = std::min(Q, next->demands[e] + next->w_minus);
+					
+					// End load feasibility
+					sumLambda += lambda_i;
+					minLambda = std::min(sumLambda, minLambda);
+					sumMu += mu_i;
+					maxMu = std::max(sumMu, maxMu);
+					int lb = sumLambda - minLambda;
+					int ub = sumMu + Q - maxMu;
+					if (lb > ub)
+					{
+						RemoveAndUnassign(next);
+						RmvCust.push_back(next->no);
+						sumLambda -= lambda_i;
+						sumMu -= mu_i;
+						// Restore minLambda and maxMu
+						minLambda = prevMinLambda;
+						maxMu = prevMaxMu;
+						cntr++;
+					}
+					else
+					{
+						// Update prevMinLambda and prevMaxMu
+						prevMinLambda = minLambda;
+						prevMaxMu = maxMu;
+					}
+					prev = next;
+				}
+			}
+			
+			if(RmvCust.size())
+			{
+				/*printf("Continue-to-Next RecoursePolicy:%d CustRmv:%d Customers:\n",Parameters::RecoursePolicy(),cntr);
+				for(int i=0;i<RmvCust.size();i++)
+				{
+					printf("%d ",RmvCust[i]);
+				}
+				printf("\n");*/
+				//d->nb_customers -= RmvCust.size();
+			}
+			//getchar();
+		}				
+		
 	private:
 		Prob * _prob;
 		int UnassignedCount;

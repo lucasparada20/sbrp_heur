@@ -16,7 +16,7 @@ class SequentialInsertionSBRP : public InsertOperator
 		SequentialInsertionSBRP(InsRmvMethodSBRP & insrmv): _insrmv(insrmv){}
 
 	void Insert(Sol & s, bool show) override;
-	void InsertOld(Sol & s);
+	void InsertOld(Sol & s, bool show);
 	void FillMoveVec(Sol & s, Node * n, Driver * d, std::vector<Move> & moveVec);
 
 	private:

@@ -38,35 +38,31 @@ int main(int arg, char ** argv)
 	Parameters param;
 	param.Read(arg,argv);	
 	
+	Prob pr_first;
 	Prob pr_temp;
-	Prob pr;
-	Prob pr_while;
 	LoadSBRP Load;
 
 	if(std::strcmp(Parameters::GetInstanceType(),"dins")==0) 
-		Load.Load_dins(pr_temp, Parameters::GetInstanceFileName(),1);
+		Load.Load_dins(pr_first, Parameters::GetInstanceFileName(),1);
 	else if(std::strcmp(Parameters::GetInstanceType(),"pcg")==0) 
-		Load.Load_pcg(pr_temp, Parameters::GetInstanceFileName(),1);
+		Load.Load_pcg(pr_first, Parameters::GetInstanceFileName(),1);
 	else {
 		printf("Wrong file type. Exiting ... \n"); exit(1);
 	}
 
-	RecourseLowerBound::SetWorstScenario(&pr_temp);
-	RecourseLowerBound::SortFromWorstScenarios(&pr_temp);
+	RecourseLowerBound::SetWorstScenario(&pr_first);
+	RecourseLowerBound::SortFromWorstScenarios(&pr_first);
  
 	//Instantiation of ALNS operators
 	CostFunctionSBRP cost_func;
 	
-	Sol sol(&pr_temp,&cost_func);
+	Sol sol(&pr_first,&cost_func);
 	sol.PutAllNodesToUnassigned();
 	
-	InsRmvMethodSBRP method1(pr_temp);
+	InsRmvMethodSBRP method1(pr_first);
 	SequentialInsertionSBRP seq1(method1);
-	RegretInsertionSBRP regret(pr_temp,method1);
-	RegretInsertionOperatorSBRP regret2(&regret,3);
-	RegretInsertionOperatorSBRP regretk(&regret,pr_temp.GetDriverCount());
 	RemoveRandomSBRP random_remove1;
-	RelatednessRemoveSBRP related_remove1(pr_temp.GetDistances());
+	RelatednessRemoveSBRP related_remove1(pr_first.GetDistances());
 	
 	// An Alns run to find a feasible solution with some drivers
 	ALNS alns1;
@@ -88,64 +84,79 @@ int main(int arg, char ** argv)
 	alns1.SetIterationCount( 1000 );
 	alns1.Optimize(sol);
 	sol.Update();
-	sol.Show();
+	sol.Show();	
+	double cost = sol.GetCost();
+	int best_driver_count = 1;
 	
-	int drv = 1;
-	while(!sol.IsFeasible())
+	for(int i=2;i<=10;i++)
 	{
-		drv++;
-		pr_while.Clear();
+		pr_temp.Clear();
 		if(std::strcmp(Parameters::GetInstanceType(),"dins")==0) 
-			Load.Load_dins(pr_while, Parameters::GetInstanceFileName(),drv);
+			Load.Load_dins(pr_temp, Parameters::GetInstanceFileName(),i);
 		else if(std::strcmp(Parameters::GetInstanceType(),"pcg")==0) 
-			Load.Load_pcg(pr_while, Parameters::GetInstanceFileName(),drv);
+			Load.Load_pcg(pr_temp, Parameters::GetInstanceFileName(),i);
+		else {
+			printf("Wrong file type. Exiting ... \n"); exit(1);
+		}
+		RecourseLowerBound::SetWorstScenario(&pr_temp);
+		RecourseLowerBound::SortFromWorstScenarios(&pr_temp);
 		
-		RecourseLowerBound::SetWorstScenario(&pr_while);
-		RecourseLowerBound::SortFromWorstScenarios(&pr_while);
-		
-		printf("No feasible solution. Restarting Alns with nb drvs:%d\n",pr_while.GetDriverCount());
+		Sol sol_i(&pr_temp,&cost_func);
+		sol_i.PutAllNodesToUnassigned();
 
-		InsRmvMethodSBRP method2(pr_while);
-		SequentialInsertionSBRP seq2(method2);
-		RegretInsertionSBRP regret(pr_while,method2);
-		RemoveRandomSBRP random_remove2;
-		RelatednessRemoveSBRP related_remove2(pr_while.GetDistances());
-		
+		InsRmvMethodSBRP method_i(pr_temp);
+		SequentialInsertionSBRP seq_i(method_i);
+		RegretInsertionSBRP regret_i(pr_temp,method_i);
+		RemoveRandomSBRP random_remove_i;
+		RelatednessRemoveSBRP related_remove_i(pr_temp.GetDistances());
+
 		// An Alns run to find a feasible solution with some drivers
-		ALNS alns2;
+		ALNS alns_i;
 		//=============================//
-		alns2.AddInsertOperator(&seq2);
+		alns_i.AddInsertOperator(&seq_i);
 		//=============================//
-		alns2.AddRemoveOperator(&random_remove2);
-		alns2.AddRemoveOperator(&related_remove2);
-		//=============================//
-		
-		Sol s(&pr_while,&cost_func);
-		s.PutAllNodesToUnassigned();
-		seq2.Insert(s,false); //Sequential insertion of nodes to build an initial solution and store in sol 
-		
+		//alns1.AddInsertOperator(&regret2);
+		//alns1.AddInsertOperator(&regretk);
+		//====================================//
+		alns_i.AddRemoveOperator(&random_remove_i);
+		alns_i.AddRemoveOperator(&related_remove_i);
+
+		seq_i.Insert(sol_i,false); //Sequential insertion of nodes to build an initial solution and store in sol 
+
 		//Optimize
-		alns2.SetTemperatureIterInit(0);
-		alns2.SetTemperature(0.9995);
-		alns2.SetAcceptationGap(1.1);
-		alns2.SetIterationCount( 1000 );
-		alns2.Optimize(s);
-		s.Update();
-		s.Show();
-		if(s.IsFeasible())
-			sol = s; //They have different prob objects ...
+		alns_i.SetTemperatureIterInit(0);
+		alns_i.SetTemperature(0.9995);
+		alns_i.SetAcceptationGap(1.1);
+		alns_i.SetIterationCount( 1000 );
+		alns_i.Optimize(sol_i);
+		sol_i.Update();
+		
+		double cost_i = sol_i.GetCost();
+		
+		printf("Curr_cost:%.1lf new_cost:%.1lf\n",cost,cost_i);
+		if (sol_i.IsFeasible() && cost_i < cost)
+		{
+			printf("Found better solution with loaded nb drv:%d!\n",pr_temp.GetDriverCount());
+			sol_i.Show();
+
+			cost = cost_i;
+			best_driver_count = sol_i.GetDriverCount();
+			sol = sol_i;
+		}		
 	}
 	
-	
-	printf("Feasible solution found with nb drvs:%d Testing with more drivers ... \n",sol.GetUsedDriverCount());
+	Prob pr;
+	printf("Best solution found:%.1lf with nb drvs:%d ... Reloading for main Alns ... \n",
+		cost, best_driver_count);
 	if(std::strcmp(Parameters::GetInstanceType(),"dins")==0) 
-		Load.Load_dins(pr, Parameters::GetInstanceFileName(),sol.GetUsedDriverCount()+2);
+		Load.Load_dins(pr, Parameters::GetInstanceFileName(),best_driver_count);
 	else if(std::strcmp(Parameters::GetInstanceType(),"pcg")==0) 
-		Load.Load_pcg(pr, Parameters::GetInstanceFileName(),sol.GetUsedDriverCount()+2);
+		Load.Load_pcg(pr, Parameters::GetInstanceFileName(),best_driver_count);
 	
+	sol.SetProb(&pr); // Before updating, you need to set the right prob object
 	RecourseLowerBound::SetWorstScenario(&pr);
-	RecourseLowerBound::SortFromWorstScenarios(&pr);	
-	
+	RecourseLowerBound::SortFromWorstScenarios(&pr);
+		
 	InsRmvMethodSBRP method(pr);
 	SequentialInsertionSBRP seq(method);
 	RemoveRandomSBRP random_remove;
@@ -156,27 +167,12 @@ int main(int arg, char ** argv)
 	//=============================//
 	alns.AddRemoveOperator(&random_remove);
 	alns.AddRemoveOperator(&related_remove);
-	//=====================================//	
-	
-	// Alns run with more drivers
-	alns.SetIterationCount( 1000 );
-	
-	Sol new_sol(&pr,&cost_func);
-	new_sol.PutAllNodesToUnassigned();
-	seq.Insert(new_sol, false);
-	alns.Optimize(new_sol);
-	new_sol.Update();
-	printf("Cost with more drivers:%.1lf drv:%d\n",new_sol.GetCost(), new_sol.GetUsedDriverCount());
-	
-	if(new_sol.GetCost() < sol.GetCost())
-	{
-		printf("Starting main Alns with solution with more drivers!\n");
-		sol = new_sol;
-	} else
-		printf("Will do main Alns run with nb drv:%d!\n",sol.GetUsedDriverCount());
-		
+	//=====================================//
 	
 	// The main Alns run
+	alns.SetTemperatureIterInit(0);
+	alns.SetTemperature(0.9995);
+	alns.SetAcceptationGap(1.1);	
 	alns.SetIterationCount( Parameters::GetIterations() );
 	clock_t start_time = clock();
 	for(int i=0;i<10;i++)
