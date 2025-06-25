@@ -1,4 +1,4 @@
-﻿Instance,InitialUB,Exact,BestLb,Opt,AlnsUb,Drv,Dist,Rec,Time,Gap: InitialUb - Exact,Gap: Alns - Exact,Gap: InitialUb - Lb,Gap: Alns - Lb,AlnsOpt,Gap: InitiaUb - Alns,,,,,,
+﻿Instance,InitialUB DINS,Exact DINS,BestLb DINS,Opt,AlnsUb,Drv,Dist,Rec,Time,Gap: InitialUb - Exact,Gap: Alns - Exact,Gap: InitialUb - Lb,Gap: Alns - Lb,AlnsOpt,Gap: InitiaUb - Alns,,,,,,
 Reggio Emilia,16900,16900,16900,1,16900,1,16900,0,714.87,0.0%,0.0%,0.0%,0.0%, 1 ,0.0%,,,,,,
 Washington (20)1,81195.57,81192.12,81192.2,1,81192.1,1,81050,142.121,923.527,0.0%,0.0%,0.0%,0.0%, 1 ,0.0%,,,Alns-Exact Gap,Alns-Lb Gap,Time,HeurOpt
 Washington (20)2,79008.23,78824.69,78789.08,0,78935.5,1,78090,845.538,273.458,0.2%,0.1%,0.3%,0.2%, -   ,-0.1%,,Average,-0.3%,14.0%,162.4,7/22
